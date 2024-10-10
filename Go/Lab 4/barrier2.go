@@ -53,10 +53,10 @@ func doStuff(goNum int, arrived *int, max int, wg *sync.WaitGroup, sharedLock *s
 	fmt.Println("Part B", goNum)
 	sharedLock.Lock()
 	*arrived--
-	if *arrived == 0 { // Check if all go rountines have finished B
+	if *arrived == 0 { // Check if all go routines have finished B
 		sharedLock.Unlock() // Unlock before any potentially blocking code
 		for range max - 1 {
-			theChan <- true // Signal the other go rounties to start C
+			theChan <- true // Signal the other go routines to start C
 		}
 	} else {
 		sharedLock.Unlock() // Unlock before waiting for the signal to proceed to Part C.
