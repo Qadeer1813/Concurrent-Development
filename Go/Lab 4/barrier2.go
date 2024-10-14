@@ -17,7 +17,7 @@
 //--------------------------------------------
 // Author: Joseph Kehoe (Joseph.Kehoe@setu.ie)
 // Created on 30/9/2024
-// Modified by: Qadeer Hussain
+// Modified by: Kelan Morgan, Qadeer Hussain
 // Description:
 // A simple barrier implemented using mutex and unbuffered channel
 // Issues:
@@ -31,52 +31,50 @@ package main
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 // Place a barrier in this function --use Mutex's and Semaphores
-func doStuff(goNum int, arrived *int, max int, wg *sync.WaitGroup, sharedLock *sync.Mutex, theChan chan bool) bool {
+func doStuff(goNum int, arrived *atomic.Int64, max int, wg *sync.WaitGroup, theChan chan bool) bool {
 	time.Sleep(time.Second)
 	fmt.Println("Part A", goNum)
 	//we wait here until everyone has completed part A
-	sharedLock.Lock()
-	*arrived++
-	if *arrived == max { //last to arrive -signal others to go
-		sharedLock.Unlock() //unlock before any potentially blocking code
-		for range max - 1 {
+	//Kelan Morgan
+	arrived.Add(1)
+	if arrived.Load() == int64(max) { //last to arrive -signal others to go
+		for range max - 1 { // run for all the other routines to free them up
 			theChan <- true
 		}
 	} else { //not all here yet we wait until signal
-		sharedLock.Unlock() //unlock before any potentially blocking code
 		<-theChan
 	} //end of if-else
 	fmt.Println("Part B", goNum)
-	sharedLock.Lock()
-	*arrived--
-	if *arrived == 0 { // Check if all go routines have finished B
-		sharedLock.Unlock() // Unlock before any potentially blocking code
-		for range max - 1 {
-			theChan <- true // Signal the other go routines to start C
+	// wait here until everyone has completed part B
+	//Qadeer Hussain
+	arrived.Add(-1)
+	if arrived.Load() == 0 { // last routine arrives here
+		for range max - 1 { // run for all the other routines to free them up
+			theChan <- true
 		}
 	} else {
-		sharedLock.Unlock() // Unlock before waiting for the signal to proceed to Part C.
-		<-theChan           // Wait for the signal to proceed to part C
+		<-theChan // wait here for last routine
 	}
 	fmt.Println("Part C", goNum)
-	wg.Done() // Go routine is finished
+	wg.Done()
 	return true
 } //end-doStuff
 
+// Qadeer and Kelan
 func main() {
-	totalRoutines := 10
-	arrived := 0
+	totalRoutines := 100
+	var arrived atomic.Int64
 	var wg sync.WaitGroup
 	wg.Add(totalRoutines)
 	//we will need some of these
-	var theLock sync.Mutex
 	theChan := make(chan bool)     //use unbuffered channel in place of semaphore
 	for i := range totalRoutines { //create the go Routines here
-		go doStuff(i, &arrived, totalRoutines, &wg, &theLock, theChan)
+		go doStuff(i, &arrived, totalRoutines, &wg, theChan)
 	}
 	wg.Wait() //wait for everyone to finish before exiting
 } //end-main
