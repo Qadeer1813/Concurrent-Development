@@ -63,7 +63,7 @@ func doStuff(goNum int, arrived *int, max int, wg *sync.WaitGroup, sharedLock *s
 		<-theChan           // Wait for the signal to proceed to part C
 	}
 	fmt.Println("Part C", goNum)
-	wg.Done() // Go rountine is finished
+	wg.Done() // Go routine is finished
 	return true
 } //end-doStuff
 
