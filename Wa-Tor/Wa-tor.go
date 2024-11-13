@@ -41,6 +41,16 @@ func initializeWorld() {
 		Grid[x][y] = 1 // 1 represents Fish
 	}
 
+	// Randomly place Shark in empty cell on the grid
+	for i := 0; i < NumShark; i++ {
+		x, y := rand.Intn(GridSize), rand.Intn(GridSize)
+		// Find empty cell on the grid for the shark
+		for Grid[x][y] != 0 {
+			x, y = rand.Intn(GridSize), rand.Intn(GridSize)
+		}
+		Grid[x][y] = 2 // 2 represents Shark
+	}
+
 }
 
 func printGrid() {
@@ -52,7 +62,11 @@ func printGrid() {
 
 			case 1: // 1 represents Fish
 				fmt.Print(" F ") // Print Fish in a cell
+
+			case 2: // 2 represents Shark
+				fmt.Print(" S") // Print Cell in a cell
 			}
+
 		}
 		fmt.Println()
 	}
