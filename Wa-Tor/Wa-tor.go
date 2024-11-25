@@ -3,6 +3,7 @@
 // Created on 04/11/2024
 // Modified by: Qadeer Hussain
 // Due: 29/11/2024
+// Lecture: Joesph Kehoe
 // Wa Tor
 // --------------------------------------------
 
@@ -53,6 +54,16 @@ func initializeWorld() {
 
 }
 
+// Fish Movement
+func fishMovement() {
+
+}
+
+// Shark Movement
+func sharkMovement() {
+
+}
+
 func printGrid() {
 	for _, row := range Grid {
 		for _, cell := range row {
@@ -64,15 +75,22 @@ func printGrid() {
 				fmt.Print(" F ") // Print Fish in a cell
 
 			case 2: // 2 represents Shark
-				fmt.Print(" S") // Print Cell in a cell
+				fmt.Print(" S ") // Print Cell in a cell
 			}
-
 		}
 		fmt.Println()
 	}
 }
 
 func main() {
+	//for {
+	//	initializeWorld()
+	//	printGrid()
+	//	time.Sleep(2 * time.Second)
+	//}
+	//fishMovement()
+	//sharkMovement()
 	initializeWorld()
 	printGrid()
+
 }
