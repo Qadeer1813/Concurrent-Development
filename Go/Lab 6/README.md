@@ -2,3 +2,4 @@
 
 For running program and to see the license please refer to https://github.com/Qadeer1813/Concurrent-Development/blob/main/README.md 
 
+This go code implments a solution 1 of the Dining philosopher Slides
