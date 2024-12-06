@@ -7,6 +7,7 @@
 // 2. Full licence info.
 // 3. Comments
 // 4. It can Deadlock!
+// Edited by : Qadeer Hussain
 
 package main
 
@@ -19,26 +20,31 @@ import (
 
 func think(index int) {
 	var X time.Duration
-	X = time.Duration(rand.IntN(5))
-	time.Sleep(X * time.Second) //wait random time amount
+	X = time.Duration(rand.IntN(5)) // Generate a random duration between 0 and 4
+	time.Sleep(X * time.Second)     //wait random time amount
 	fmt.Println("Phil: ", index, "was thinking")
 }
 
 func eat(index int) {
 	var X time.Duration
-	X = time.Duration(rand.IntN(5))
-	time.Sleep(X * time.Second) //wait random time amount
+	X = time.Duration(rand.IntN(5)) // Generate a random duration between 0 and 4
+	time.Sleep(X * time.Second)     //wait random time amount
 	fmt.Println("Phil: ", index, "was eating")
 }
 
+// Semaphore allowing 4 philosophers
+var footman = make(chan bool, 4)
+
 func getForks(index int, forks map[int]chan bool) {
-	forks[index] <- true
-	forks[(index+1)%5] <- true
+	footman <- true            // wait to enter the dining area
+	forks[index] <- true       // Get Left fork
+	forks[(index+1)%5] <- true // Get Right fork
 }
 
 func putForks(index int, forks map[int]chan bool) {
-	<-forks[index]
-	<-forks[(index+1)%5]
+	<-forks[index]       // release left fork
+	<-forks[(index+1)%5] // release right fork
+	<-footman            // signal leaving dining
 }
 
 func doPhilStuff(index int, wg *sync.WaitGroup, forks map[int]chan bool) {
@@ -54,15 +60,14 @@ func doPhilStuff(index int, wg *sync.WaitGroup, forks map[int]chan bool) {
 func main() {
 	var wg sync.WaitGroup
 	philCount := 5
-	wg.Add(philCount)
+	wg.Add(philCount) // wait group for the 5 philosophers
 
 	forks := make(map[int]chan bool)
-	for k := range philCount {
-		forks[k] = make(chan bool, 1)
+	for k := 0; k < philCount; k++ {
+		forks[k] = make(chan bool, 1) //initialize channel with buffer size 1
 	} //set up forks
-	for N := range philCount {
-		go doPhilStuff(N, &wg, forks)
+	for N := 0; N < philCount; N++ {
+		go doPhilStuff(N, &wg, forks) // Start philosophers routine
 	} //start philosophers
 	wg.Wait() //wait here until everyone (10 go routines) is done
-
 } //main
