@@ -9,7 +9,7 @@
         1. javac main.java 
         2. java main
     
-    To compile 
+    To compile go code
         1. go run [filename]
 ***#License***
 
