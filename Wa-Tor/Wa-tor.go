@@ -95,7 +95,7 @@ func initializeFishChronons() {
 	}
 }
 
-// Initialize fishChronons grid
+// Initialize shark stats(chronons and starvation) grid
 func initializeSharksStat() {
 	for i := range sharkChronons {
 		sharkChronons[i] = make([]int, GridSize)
