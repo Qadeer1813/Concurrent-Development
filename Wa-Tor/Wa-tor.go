@@ -24,13 +24,13 @@ import (
 )
 
 const (
-	NumShark   = 10 // Population of Sharks
-	NumFish    = 10 // Population of Fishs
-	FishBreed  = 5  // Number of time units that pass before a fish can reproduce
-	SharkBreed = 7  // Number of time units that must pass before a shark can reproduce
-	Starve     = 5  // Period of time a shark can go without food before dying
-	GridSize   = 24 // Size of World
-	Threads    = 8  // Temp No of Threads
+	NumShark   = 30 // Population of Sharks
+	NumFish    = 35 // Population of Fishs
+	FishBreed  = 7  // Number of time units that pass before a fish can reproduce
+	SharkBreed = 9  // Number of time units that must pass before a shark can reproduce
+	Starve     = 7  // Period of time a shark can go without food before dying
+	GridSize   = 30 // Size of World
+	Threads    = 1  // Temp No of Threads
 )
 
 const (
