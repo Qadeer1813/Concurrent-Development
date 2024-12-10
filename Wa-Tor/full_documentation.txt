@@ -1,4 +1,7 @@
-
+-------------------------------------------- Author: Qadeer
+Hussain (C00270632@setu.ie) Created on 04/11/2024 Modified by:
+Qadeer Hussain Due: 06/12/2024 Lecture: Joesph Kehoe Wa Tor
+-------------------------------------------- Package main
 
 CONSTANTS
 
@@ -29,6 +32,9 @@ VARIABLES
 var Grid = make([][]int, GridSize)
 
 FUNCTIONS
+
+func CheckThreads()
+    Check if the system supports the required number of threads
 
 func Concurrent(grid [][]int, processFunc func(int, int, *[][]int), newGrid *[][]int)
     Concurrent processing of the grid

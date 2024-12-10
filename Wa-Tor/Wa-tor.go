@@ -6,7 +6,7 @@
 // Lecture: Joesph Kehoe
 // Wa Tor
 // --------------------------------------------
-
+// Package main
 package main
 
 import (
@@ -60,7 +60,7 @@ func EmptyGrid() {
 }
 
 // Check if the system supports the required number of threads
-func checkThreads() {
+func CheckThreads() {
 	availableThreads := runtime.NumCPU()
 	if availableThreads < Threads {
 		fmt.Printf("Warning: The system supports only %d threads, but %d are requested.\n", availableThreads, Threads)
@@ -416,7 +416,7 @@ func main() {
 	a := app.New()
 	w = a.NewWindow("Wa-Tor Simulation")
 
-	checkThreads() // Function check if user machine has enough threads
+	CheckThreads() // Function check if user machine has enough threads
 
 	EmptyGrid() // Start with empty grid
 

@@ -11,7 +11,8 @@ Before running or compiling the Wa-tor simulation make sure that
 [Fyne](https://docs.fyne.io/started/) is set up correctly.
 
     To compile go code
-        1. go run Wa-tor.go
+        1. go mod init
+        2. go run Wa-tor.go
 
 ****
 ## Description
@@ -23,6 +24,33 @@ Before running or compiling the Wa-tor simulation make sure that
     Storage: 1TB
     GPU: Nvidia 3050
     Threads: 12
+
+**Documentation**
+
+    To View Documentation below are steps to be followed if using Gold
+
+    1. go install go101.org/golds@latest
+
+    2. run the following: golds .
+
+    3. Head over to this: github.com/Qadeer1813/Concurrent-Development/tree/main/Wa-Tor section of the document
+
+    4. This will now display the documentation
+
+    To View Documentation below are steps to be followed if using Go Doc
+    
+    1. go install golang.org/x/tools/cmd/godoc@latest
+
+    2. change the package name from apckage main to package Wa-Tor
+    (Warning: Once this package has beeen changed to Wa-Tor the code will no longer compile.)
+
+    3. then run 
+
+    4. godoc -http=:8080
+
+    5. Go to Third Pirty from the Index
+    
+    6. In there searchh for Wa-Tor this will produce the necessary documentation
 
 **What is Wa-tor**
 
