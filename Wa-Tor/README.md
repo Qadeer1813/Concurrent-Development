@@ -1,5 +1,5 @@
-## Concurrent Development
-## Wa-tor Project
+# Concurrent Development
+## Wa-tor Simulation
 ****
 **Student Name: Qadeer Hussain**
 
@@ -7,8 +7,11 @@
 
 **Lecture: Joesph Kehoe**
 ** **
+Before running or compiling the Wa-tor simulation make sure that 
+[Fyne](https://docs.fyne.io/started/) is set up correctly.
+
     To compile go code
-        1. 'go run Wa-tor.go's
+        1. go run Wa-tor.go
 
 ****
 ## Description
@@ -30,8 +33,17 @@
 
 **Implementation**
 
-****
+    The Development of the WA-TOR simulastion started with a sequential implmentation
+    and then moved to a more complex version concurrent version.
 
+    1. Sequential Implmentation
+    Straightforward sequential version of the Wa-Tor simulation, 
+    focusing on creating the core functionality
+
+    2. Concurrent Implmentation
+    After the completion of the sequential implementation, concurrency was introduced
+
+****
 
 ## License 
 

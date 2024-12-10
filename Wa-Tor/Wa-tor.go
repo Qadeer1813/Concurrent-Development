@@ -168,35 +168,36 @@ func Concurrent(grid [][]int, processFunc func(int, int, *[][]int), newGrid *[][
 	var wg sync.WaitGroup // Wait group for goroutines
 	var mutex sync.Mutex  // Mutex prevent race cond
 
-	// Calculate sub-grid size
+	// Calculate sub-grid size each thread will be processing
 	subGrid := GridSize / Threads
 
 	for threadID := 0; threadID < Threads; threadID++ {
-		wg.Add(1)
+		wg.Add(1) // Waitgroup counter for each thread
 		go func(tID int) {
-			defer wg.Done()
+			defer wg.Done() // Decrement the WaitGroup counter when this goroutine finishes
 
 			// Calculate start and end rows for this thread
 			startRow := tID * subGrid
 			endRow := startRow + subGrid
+			// Last thread covers any remaining rows
 			if tID == Threads-1 {
-				endRow = GridSize // Ensure last thread covers remaining rows
+				endRow = GridSize
 			}
 
 			// Process rows for this thread
 			for i := startRow; i < endRow; i++ {
 				for j := 0; j < GridSize; j++ {
-					if grid[i][j] != EmptyCell {
-						mutex.Lock()
-						processFunc(i, j, newGrid)
-						mutex.Unlock()
+					if grid[i][j] != EmptyCell { // Only process non-empty cells
+						mutex.Lock()               // Lock the shared grid
+						processFunc(i, j, newGrid) // Apply the processing function
+						mutex.Unlock()             // Unlock shared grid
 					}
 				}
 			}
-		}(threadID)
+		}(threadID) // Pass the thread ID to the goroutine
 	}
 
-	// Wait for all threads to complete
+	// Wait for all go routines to complete
 	wg.Wait()
 }
 
@@ -218,15 +219,18 @@ func FishMovement() {
 	//// Attempt to move or reproduce fish
 	//for i := 0; i < GridSize; i++ {
 	//	for j := 0; j < GridSize; j++ {
+	// Use the Concurrent function to handle fish movement and reproduction
 	Concurrent(Grid, func(i, j int, newGrid *[][]int) {
 		if Grid[i][j] == Fish {
 			fishChronons[i][j]++
+			// Get a random list of movement directions
 			directions := RandomDirection()
 			var moved bool
 			for _, direction := range directions {
 				if moved {
 					break
 				}
+				// Move the fish in the given direction
 				switch direction {
 				case North: // North
 					if i > 0 && (*newGrid)[i-1][j] == EmptyCell {
@@ -279,8 +283,10 @@ func SharkMovement() {
 	// Attempt to move or reproduce the sharks
 	//for i := 0; i < GridSize; i++ {
 	//	for j := 0; j < GridSize; j++ {
+	// Use the Concurrent function to handle shark movement and reproduction
 	Concurrent(Grid, func(i, j int, newGrid *[][]int) {
 		if Grid[i][j] == Shark {
+			// Get a random list of movement directions
 			directions := RandomDirection()
 			var moved bool
 			// First try to find and eat fish
