@@ -385,7 +385,7 @@ func CreateGrid() *fyne.Container {
 	return grid
 }
 
-const MaxIterations = 100 // Maximum number of iterations
+const MaxIterations = 250 // Maximum number of iterations
 
 func UpdateFunc() {
 	iteration := 0          // Counter to track iterations
