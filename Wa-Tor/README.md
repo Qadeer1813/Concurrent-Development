@@ -73,6 +73,22 @@ Before running or compiling the Wa-tor simulation make sure that
 
 ****
 
+**BenchMark Results**
+
+    Simulations were ran for 250 iterations
+
+    Wator Thread Speed Up	
+	
+    Number of Sharks	30
+    Number of Fish	35
+    Fish Breeding Time	7
+    Shark Breeding Time	9
+    Shark Starvation	7
+
+![image](https://github.com/user-attachments/assets/d7a341ce-0740-4647-85ce-5476125814d6)
+
+![image](https://github.com/user-attachments/assets/8c40a84d-6a03-46cd-a0ed-ec19730b5f5a)
+
 ## License 
 
 Concurrent Development © 2024 by Qadeer Hussain is licensed 
