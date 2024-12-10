@@ -1,0 +1,66 @@
+
+
+CONSTANTS
+
+const (
+	NumShark   = 10 // Population of Sharks
+	NumFish    = 10 // Population of Fishs
+	FishBreed  = 5  // Number of time units that pass before a fish can reproduce
+	SharkBreed = 7  // Number of time units that must pass before a shark can reproduce
+	Starve     = 5  // Period of time a shark can go without food before dying
+	GridSize   = 24 // Size of World
+	Threads    = 8  // Temp No of Threads
+)
+const (
+	EmptyCell = 0
+	Fish      = 1
+	Shark     = 2
+)
+const (
+	North = 0
+	East  = 1
+	South = 2
+	West  = 3
+)
+const MaxIterations = 100 // Maximum number of iterations
+
+VARIABLES
+
+var Grid = make([][]int, GridSize)
+
+FUNCTIONS
+
+func Concurrent(grid [][]int, processFunc func(int, int, *[][]int), newGrid *[][]int)
+    Concurrent processing of the grid
+
+func CreateGrid() *fyne.Container
+    Create grid displayed using Fyne Library
+
+func EmptyGrid()
+    Initialize an empty grid
+
+func ExecuteFishMove(fromI, fromJ, toI, toJ int, newGrid *[][]int)
+    Execute the fish movement
+
+func ExecuteSharkMove(fromI, fromJ, toI, toJ int, newGrid *[][]int, eatenFish bool)
+    Execute the shark movement
+
+func FishMovement()
+    Fish Movement and Reproduction
+
+func InitializeFishChronons()
+    Initialize fishChronons grid
+
+func InitializeSharksStat()
+    Initialize shark stats(chronons and starvation) grid
+
+func InitializeWorld()
+    Initialize the world of FISH and SHARK :)
+
+func RandomDirection() []int
+    Generate random list of directions for the sharks and fish to move
+
+func SharkMovement()
+    Shark Movement
+
+func UpdateFunc()
