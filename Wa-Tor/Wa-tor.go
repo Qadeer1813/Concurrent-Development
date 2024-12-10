@@ -10,6 +10,7 @@
 package main
 
 import (
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
@@ -17,6 +18,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"image/color"
 	"math/rand"
+	"runtime"
+	"sync"
 	"time"
 )
 
@@ -26,8 +29,8 @@ const (
 	FishBreed  = 5  // Number of time units that pass before a fish can reproduce
 	SharkBreed = 7  // Number of time units that must pass before a shark can reproduce
 	Starve     = 5  // Period of time a shark can go without food before dying
-	GridSize   = 10 // Size of World
-	Threads    = 4  // Temp No of Threads
+	GridSize   = 24 // Size of World
+	Threads    = 8  // Temp No of Threads
 )
 
 const (
@@ -53,6 +56,16 @@ var sharkStarve = make([][]int, GridSize)   // Tracks the number of chronons sin
 func EmptyGrid() {
 	for i := range Grid {
 		Grid[i] = make([]int, GridSize)
+	}
+}
+
+// Check if the system supports the required number of threads
+func checkThreads() {
+	availableThreads := runtime.NumCPU()
+	if availableThreads < Threads {
+		fmt.Printf("Warning: The system supports only %d threads, but %d are requested.\n", availableThreads, Threads)
+	} else {
+		fmt.Printf("System supports %d threads. Simulation will proceed.\n", availableThreads)
 	}
 }
 
@@ -150,6 +163,43 @@ func executeSharkMove(fromI, fromJ, toI, toJ int, newGrid *[][]int, eatenFish bo
 	}
 }
 
+// Concurrent processing of the grid
+func concurrent(grid [][]int, processFunc func(int, int, *[][]int), newGrid *[][]int) {
+	var wg sync.WaitGroup // Wait group for goroutines
+	var mutex sync.Mutex  // Mutex prevent race cond
+
+	// Calculate sub-grid size
+	subGrid := GridSize / Threads
+
+	for threadID := 0; threadID < Threads; threadID++ {
+		wg.Add(1)
+		go func(tID int) {
+			defer wg.Done()
+
+			// Calculate start and end rows for this thread
+			startRow := tID * subGrid
+			endRow := startRow + subGrid
+			if tID == Threads-1 {
+				endRow = GridSize // Ensure last thread covers remaining rows
+			}
+
+			// Process rows for this thread
+			for i := startRow; i < endRow; i++ {
+				for j := 0; j < GridSize; j++ {
+					if grid[i][j] != EmptyCell {
+						mutex.Lock()
+						processFunc(i, j, newGrid)
+						mutex.Unlock()
+					}
+				}
+			}
+		}(threadID)
+	}
+
+	// Wait for all threads to complete
+	wg.Wait()
+}
+
 // Fish Movement and Reproduction
 func fishMovement() {
 	// Create a temporary grid to store new positions
@@ -165,48 +215,48 @@ func fishMovement() {
 		}
 	}
 
-	// Attempt to move or reproduce fish
-	for i := 0; i < GridSize; i++ {
-		for j := 0; j < GridSize; j++ {
-			if Grid[i][j] == Fish {
-				fishChronons[i][j]++
-				directions := RandomDirection()
-				var moved bool
-				for _, direction := range directions {
-					if moved {
-						break
-					}
-					switch direction {
-					case North: // North
-						if i > 0 && newGrid[i-1][j] == EmptyCell {
-							executeFishMove(i, j, i-1, j, &newGrid)
-							moved = true
-						}
-					case East: // East
-						if j < GridSize-1 && newGrid[i][j+1] == EmptyCell {
-							executeFishMove(i, j, i, j+1, &newGrid)
-							moved = true
-						}
-					case South: // South
-						if i < GridSize-1 && newGrid[i+1][j] == EmptyCell {
-							executeFishMove(i, j, i+1, j, &newGrid)
-							moved = true
-						}
-					case West: // West
-						if j > 0 && newGrid[i][j-1] == EmptyCell {
-							executeFishMove(i, j, i, j-1, &newGrid)
-							moved = true
-						}
-					}
+	//// Attempt to move or reproduce fish
+	//for i := 0; i < GridSize; i++ {
+	//	for j := 0; j < GridSize; j++ {
+	concurrent(Grid, func(i, j int, newGrid *[][]int) {
+		if Grid[i][j] == Fish {
+			fishChronons[i][j]++
+			directions := RandomDirection()
+			var moved bool
+			for _, direction := range directions {
+				if moved {
+					break
 				}
-
-				// If no move was made, keep fish in the current cell
-				if !moved {
-					newGrid[i][j] = Fish
+				switch direction {
+				case North: // North
+					if i > 0 && (*newGrid)[i-1][j] == EmptyCell {
+						executeFishMove(i, j, i-1, j, newGrid)
+						moved = true
+					}
+				case East: // East
+					if j < GridSize-1 && (*newGrid)[i][j+1] == EmptyCell {
+						executeFishMove(i, j, i, j+1, newGrid)
+						moved = true
+					}
+				case South: // South
+					if i < GridSize-1 && (*newGrid)[i+1][j] == EmptyCell {
+						executeFishMove(i, j, i+1, j, newGrid)
+						moved = true
+					}
+				case West: // West
+					if j > 0 && (*newGrid)[i][j-1] == EmptyCell {
+						executeFishMove(i, j, i, j-1, newGrid)
+						moved = true
+					}
 				}
 			}
+
+			// If no move was made, keep fish in the current cell
+			if !moved {
+				(*newGrid)[i][j] = Fish
+			}
 		}
-	}
+	}, &newGrid)
 	// Update the grid with new positions
 	Grid = newGrid
 }
@@ -227,80 +277,80 @@ func sharkMovement() {
 	}
 
 	// Attempt to move or reproduce the sharks
-	for i := 0; i < GridSize; i++ {
-		for j := 0; j < GridSize; j++ {
-			if Grid[i][j] == Shark {
-				directions := RandomDirection()
-				var moved bool
-				// First try to find and eat fish
+	//for i := 0; i < GridSize; i++ {
+	//	for j := 0; j < GridSize; j++ {
+	concurrent(Grid, func(i, j int, newGrid *[][]int) {
+		if Grid[i][j] == Shark {
+			directions := RandomDirection()
+			var moved bool
+			// First try to find and eat fish
+			for _, direction := range directions {
+				if moved {
+					break
+				}
+				switch direction {
+				case North:
+					if i > 0 && (*newGrid)[i-1][j] == Fish {
+						executeSharkMove(i, j, i-1, j, newGrid, true)
+						moved = true
+					}
+				case East:
+					if j < GridSize-1 && (*newGrid)[i][j+1] == Fish {
+						executeSharkMove(i, j, i, j+1, newGrid, true)
+						moved = true
+					}
+				case South:
+					if i < GridSize-1 && (*newGrid)[i+1][j] == Fish {
+						executeSharkMove(i, j, i+1, j, newGrid, true)
+						moved = true
+					}
+				case West:
+					if j > 0 && (*newGrid)[i][j-1] == Fish {
+						executeSharkMove(i, j, i, j-1, newGrid, true)
+						moved = true
+					}
+				}
+			}
+			// If no fish was eaten, try to move to an empty cell
+			if !moved {
 				for _, direction := range directions {
 					if moved {
 						break
 					}
 					switch direction {
 					case North:
-						if i > 0 && newGrid[i-1][j] == Fish {
-							executeSharkMove(i, j, i-1, j, &newGrid, true)
+						if i > 0 && (*newGrid)[i-1][j] == EmptyCell {
+							executeSharkMove(i, j, i-1, j, newGrid, false)
 							moved = true
 						}
 					case East:
-						if j < GridSize-1 && newGrid[i][j+1] == Fish {
-							executeSharkMove(i, j, i, j+1, &newGrid, true)
+						if j < GridSize-1 && (*newGrid)[i][j+1] == EmptyCell {
+							executeSharkMove(i, j, i, j+1, newGrid, false)
 							moved = true
 						}
 					case South:
-						if i < GridSize-1 && newGrid[i+1][j] == Fish {
-							executeSharkMove(i, j, i+1, j, &newGrid, true)
+						if i < GridSize-1 && (*newGrid)[i+1][j] == EmptyCell {
+							executeSharkMove(i, j, i+1, j, newGrid, false)
 							moved = true
 						}
 					case West:
-						if j > 0 && newGrid[i][j-1] == Fish {
-							executeSharkMove(i, j, i, j-1, &newGrid, true)
+						if j > 0 && (*newGrid)[i][j-1] == EmptyCell {
+							executeSharkMove(i, j, i, j-1, newGrid, false)
 							moved = true
 						}
 					}
 				}
-				// If no fish was eaten, try to move to an empty cell
-				if !moved {
-					for _, direction := range directions {
-						if moved {
-							break
-						}
-						switch direction {
-						case North:
-							if i > 0 && newGrid[i-1][j] == EmptyCell {
-								executeSharkMove(i, j, i-1, j, &newGrid, false)
-								moved = true
-							}
-						case East:
-							if j < GridSize-1 && newGrid[i][j+1] == EmptyCell {
-								executeSharkMove(i, j, i, j+1, &newGrid, false)
-								moved = true
-							}
-						case South:
-							if i < GridSize-1 && newGrid[i+1][j] == EmptyCell {
-								executeSharkMove(i, j, i+1, j, &newGrid, false)
-								moved = true
-							}
-						case West:
-							if j > 0 && newGrid[i][j-1] == EmptyCell {
-								executeSharkMove(i, j, i, j-1, &newGrid, false)
-								moved = true
-							}
-						}
-					}
-				}
-				// If no move was made, increment sharks chronons
-				if !moved {
-					sharkChronons[i][j]++ // Increment breeding chronon
-					sharkStarve[i][j]++   // Increment hunger chronon
-					if sharkStarve[i][j] >= Starve {
-						newGrid[i][j] = EmptyCell // Shark dies of starvation
-					}
+			}
+			// If no move was made, increment sharks chronons
+			if !moved {
+				sharkChronons[i][j]++ // Increment breeding chronon
+				sharkStarve[i][j]++   // Increment hunger chronon
+				if sharkStarve[i][j] >= Starve {
+					(*newGrid)[i][j] = EmptyCell // Shark dies of starvation
 				}
 			}
 		}
-	}
+	}, &newGrid)
 	// Update the grid with new positions
 	Grid = newGrid
 }
@@ -322,35 +372,45 @@ func createGrid() *fyne.Container {
 				cellColor = color.Gray{Y: 180}
 			}
 			rect := canvas.NewRectangle(cellColor)
-			rect.SetMinSize(fyne.NewSize(20, 20))
+			rect.SetMinSize(fyne.NewSize(10, 10))
 			grid.Add(rect)
 		}
 	}
 	return grid
 }
 
+const MaxIterations = 100 // Maximum number of iterations
+
 func updateFunc() {
-	if !simulationRunning {
-		return
+	iteration := 0          // Counter to track iterations
+	startTime := time.Now() // Record the start time of the simulation
+
+	for simulationRunning && iteration < MaxIterations {
+		fishMovement()  // Update fish positions
+		sharkMovement() // Update shark movement
+		iteration++     // Increment the iteration counter
+
+		w.SetContent(container.NewVBox( // Refresh UI with updated grid and button
+			createGrid(),
+			widget.NewButton("Stop", func() {
+				simulationRunning = false // Stop the simulation
+			}),
+		))
 	}
-	fishMovement()                  // Update fish positions
-	sharkMovement()                 // Update shark movement
-	w.SetContent(container.NewVBox( // Refresh UI with Start button
-		createGrid(),
-		widget.NewButton("Start", func() {
-			if !simulationRunning {
-				simulationRunning = true
-				initializeWorld()
-				updateFunc()
-			}
-		}),
-	))
-	time.AfterFunc(time.Second, updateFunc) // Schedule the next update
+
+	// Stop the simulation after reaching the maximum iterations
+	if iteration >= MaxIterations {
+		simulationRunning = false
+		elapsedTime := time.Since(startTime) // Calculate elapsed time
+		fmt.Printf("Simulation completed in %s after %d iterations.\n", elapsedTime, MaxIterations)
+	}
 }
 
 func main() {
 	a := app.New()
 	w = a.NewWindow("Wa-Tor Simulation")
+
+	checkThreads() // Function check if user machine has enough threads
 
 	EmptyGrid() // Start with empty grid
 
@@ -359,7 +419,7 @@ func main() {
 		if !simulationRunning {
 			simulationRunning = true
 			initializeWorld()
-			updateFunc()
+			go updateFunc()
 		}
 	})
 
